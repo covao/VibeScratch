@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VibeScratch</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>〰️</text></svg>">
+<style>
+/* ==========================================================
+   DESIGN TOKENS
+   ========================================================== */
+:root {
+  --bg: #0e0e12;
+  --surface: #16161e;
+  --surface2: #1e1e2a;
+  --surface3: #252535;
+  --accent: #7c6af7;
+  --accent2: #4ecdc4;
+  --accent3: #ff6b6b;
+  --text: #e8e8f0;
+  --text2: #9090a8;
+  --text3: #5a5a72;
+  --border: #2a2a3e;
+  --border2: #3a3a52;
+  --h1c: #7c6af7;
+  --h2c: #4ecdc4;
+  --h3c: #f9ca24;
+  --h4c: #fd9644;
+  --h5c: #a29bfe;
+  --h6c: #74b9ff;
+  --listc: #ff6b6b;
+  --codec: #2dd4bf;
+  --quotec: #f093fb;
+  --radius: 8px;
+  --title-h: 52px;
+  --menu-w: 260px;
+}
+
+/* ==========================================================
+   RESET & BASE
+   ========================================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  background: var(--bg); color: var(--text);
+  height: 100vh; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+/* ==========================================================
+   TITLEBAR
+   ========================================================== */
+#titlebar {
+  height: var(--title-h); background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 12px; gap: 8px;
+  overflow-x: auto; overflow-y: hidden; flex-shrink: 0;
+  white-space: nowrap; z-index: 100;
+}
+#titlebar::-webkit-scrollbar { height: 3px; }
+#titlebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+#logo { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+#logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800; color: white; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+#logo-name {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-weight: 800; font-size: 18px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; flex-shrink: 0;
+}
+
+.tb-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; margin: 0 4px; }
+.tb-btn {
+  background: none; border: 1px solid transparent; color: var(--text2);
+  cursor: pointer; padding: 6px 10px; border-radius: 6px; font-size: 12px;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0; transition: all .15s; white-space: nowrap;
+}
+.tb-btn:hover { background: var(--surface2); border-color: var(--border); color: var(--text); }
+.tb-btn.active { background: var(--surface3); border-color: var(--accent); color: var(--accent); }
+.tb-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+#tb-spacer { flex: 1; min-width: 8px; }
+
+/* ==========================================================
+   LAYOUT
+   ========================================================== */
+#app { display: flex; flex: 1; overflow: hidden; }
+
+/* Sidebar menu */
+#menu {
+  width: var(--menu-w); background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0;
+  transition: width .2s ease, opacity .2s ease; overflow: hidden;
+}
+#menu.collapsed { width: 0; opacity: 0; }
+#menu-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  letter-spacing: .1em; text-transform: uppercase; flex-shrink: 0;
+}
+#menu-content { flex: 1; overflow-y: auto; padding: 12px; }
+.menu-section { margin-bottom: 16px; }
+.menu-section-title {
+  font-size: 10px; color: var(--text3); letter-spacing: .1em;
+  text-transform: uppercase; margin-bottom: 8px; padding: 0 4px;
+}
+.menu-item {
+  padding: 8px 10px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; color: var(--text2);
+  display: flex; align-items: center; gap: 8px;
+  transition: all .1s; margin-bottom: 2px;
+}
+.menu-item:hover { background: var(--surface2); color: var(--text); }
+.menu-item svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+#main { flex: 1; display: flex; overflow: hidden; }
+
+/* ==========================================================
+   PANELS
+   ========================================================== */
+.panel { display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+#panel-blocks { width: 42%; border-right: 1px solid var(--border); flex-shrink: 0; }
+#panel-editor { flex: 1; }
+
+.panel-header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 12px; display: flex; align-items: center;
+  justify-content: space-between; flex-shrink: 0; height: 42px;
+}
+.panel-title {
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  letter-spacing: .1em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-title svg { width: 14px; height: 14px; color: var(--accent); }
+.panel-actions { display: flex; gap: 6px; }
+
+/* ==========================================================
+   SEGMENTED CONTROL
+   ========================================================== */
+.seg-ctrl {
+  display: flex; background: var(--surface3); border-radius: 6px;
+  padding: 2px; gap: 2px; border: 1px solid var(--border);
+}
+.seg-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 11px;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; font-weight: 600;
+  letter-spacing: .04em; padding: 4px 10px;
+  border-radius: 4px; transition: all .15s; white-space: nowrap;
+}
+.seg-btn:hover { color: var(--text2); }
+.seg-btn.active { background: var(--accent); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+
+
+/* ==========================================================
+   SHARED PANEL PANES (Block / Text / Preview — both panels)
+   ========================================================== */
+.panel-block-content {
+  flex: 1; overflow-y: auto; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 3px; position: relative;
+  background: var(--bg);
+}
+.panel-block-content::-webkit-scrollbar { width: 4px; }
+.panel-block-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.panel-block-content.hidden { display: none; }
+.panel-block-content.drag-receiving { outline: 2px solid rgba(124,106,247,.25); outline-offset: -2px; border-radius: var(--radius); }
+
+.panel-text-pane { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.panel-text-pane.hidden { display: none; }
+.panel-text-pane textarea {
+  flex: 1; background: var(--surface); color: var(--text2);
+  border: none; outline: none; padding: 16px;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; font-size: 13px;
+  line-height: 1.7; resize: none; overflow-y: auto;
+}
+.panel-text-pane textarea::-webkit-scrollbar { width: 4px; }
+.panel-text-pane textarea::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+#right-text-pane textarea { background: var(--bg); color: var(--text); }
+
+.panel-preview-pane {
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.8; color: var(--text);
+}
+.panel-preview-pane.hidden { display: none; }
+.panel-preview-pane::-webkit-scrollbar { width: 4px; }
+.panel-preview-pane::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.panel-preview-pane h1 { font-size: 24px; font-weight: 800; color: var(--h1c); margin: 0 0 12px; }
+.panel-preview-pane h2 { font-size: 20px; font-weight: 700; color: var(--h2c); margin: 16px 0 8px; padding-left: 12px; }
+.panel-preview-pane h3 { font-size: 17px; font-weight: 600; color: var(--h3c); margin: 14px 0 6px; padding-left: 24px; }
+.panel-preview-pane h4 { font-size: 15px; font-weight: 600; color: var(--h4c); margin: 12px 0 5px; padding-left: 36px; }
+.panel-preview-pane h5 { font-size: 14px; font-weight: 500; color: var(--h5c); margin: 10px 0 4px; padding-left: 48px; }
+.panel-preview-pane h6 { font-size: 13px; font-weight: 500; color: var(--h6c); margin: 8px 0 4px;  padding-left: 60px; opacity: .85; }
+.panel-preview-pane p { margin: 8px 0; }
+.panel-preview-pane ul { padding-left: 20px; margin: 8px 0; }
+.panel-preview-pane li { margin: 4px 0; }
+.panel-preview-pane pre { background: rgba(0,0,0,.5); border: 1px solid var(--border); padding: 12px 16px; border-radius: 8px; overflow-x: auto; font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; font-size: 12px; color: var(--codec); margin: 8px 0; }
+.panel-preview-pane blockquote { border-left: 3px solid var(--quotec); padding-left: 12px; color: var(--quotec); font-style: italic; margin: 8px 0; }
+
+.add-block-bar-shared {
+  padding: 7px 12px; border-top: 1px solid var(--border);
+  display: flex; gap: 5px; flex-wrap: wrap;
+  background: var(--surface); flex-shrink: 0;
+}
+.add-block-bar-shared.hidden { display: none; }
+
+#right-text-sync-bar {
+  padding: 6px 12px; background: var(--surface); border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text3); flex-shrink: 0;
+}
+.sync-btn {
+  background: none; border: 1px solid var(--border); color: var(--text2);
+  cursor: pointer; padding: 3px 10px; border-radius: 5px;
+  font-size: 11px; font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; transition: all .15s;
+}
+.sync-btn:hover { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+
+/* ==========================================================
+   BLOCK TREE — shared styles for both panels
+   ========================================================== */
+
+/* Group container */
+.block-group { position: relative; }
+.block-group > .block-children::before {
+  content: ''; position: absolute; left: -1px; top: 0; bottom: 4px;
+  width: 2px; border-radius: 1px;
+}
+.block-group[data-type="h1"] > .block-children::before { background: rgba(124,106,247,.35); }
+.block-group[data-type="h2"] > .block-children::before { background: rgba(78,205,196,.3); }
+.block-group[data-type="h3"] > .block-children::before { background: rgba(249,202,36,.25); }
+.block-group[data-type="h4"] > .block-children::before { background: rgba(253,150,68,.2); }
+.block-group[data-type="h5"] > .block-children::before { background: rgba(162,155,254,.2); }
+.block-group[data-type="h6"] > .block-children::before { background: rgba(116,185,255,.2); }
+
+/* Children container */
+.block-children {
+  margin-left: 16px; padding-left: 12px; position: relative;
+  display: flex; flex-direction: column; gap: 3px; overflow: hidden;
+  transition: max-height .22s cubic-bezier(.4,0,.2,1), opacity .18s ease;
+  max-height: 9999px; opacity: 1;
+}
+.block-children.collapsed { max-height: 0; opacity: 0; pointer-events: none; }
+
+/* Block */
+.block {
+  border-radius: var(--radius); user-select: none;
+  transition: background .12s, border-color .12s, transform .12s;
+  position: relative; border: 1px solid var(--border);
+}
+.block:hover { border-color: var(--border2); }
+.block.group-dragging { opacity: .35; transform: scale(.99); }
+.block.drag-target-before::before {
+  content: ''; position: absolute; top: -3px; left: 0; right: 0;
+  height: 3px; background: var(--accent); border-radius: 2px;
+}
+.block.drag-target-after::after {
+  content: ''; position: absolute; bottom: -3px; left: 0; right: 0;
+  height: 3px; background: var(--accent); border-radius: 2px;
+}
+.block-group.drag-target-before > .block::before,
+.block-group.drag-target-after > .block::after {
+  content: ''; position: absolute; left: 0; right: 0;
+  height: 3px; background: var(--accent); border-radius: 2px;
+}
+.block-group.drag-target-before > .block::before { top: -3px; }
+.block-group.drag-target-after > .block::after { bottom: -3px; }
+.block[data-type="list"].list-merge-target {
+  border-color: var(--listc); box-shadow: 0 0 0 2px rgba(255,107,107,.25);
+  background: rgba(255,107,107,.1);
+}
+.block[data-type="list"].list-merge-target::after {
+  content: '+ merge'; position: absolute; right: 8px; top: 50%;
+  transform: translateY(-50%); font-size: 10px; color: var(--listc);
+  font-weight: 700; pointer-events: none;
+}
+.block.pop-in { animation: popIn .18s cubic-bezier(.34,1.56,.64,1); }
+@keyframes popIn { from { opacity:0; transform:scale(.92) translateY(-4px); } to { opacity:1; transform:none; } }
+.block.merge-flash { animation: mergeFlash .4s ease; }
+@keyframes mergeFlash { 0% { background:rgba(255,107,107,.4); } 100% { background:inherit; } }
+
+/* Block type styles */
+.block[data-type="h1"]   { background: rgba(124,106,247,.08); border-left: 5px solid var(--h1c); padding: 12px 14px; }
+.block[data-type="h2"]   { background: rgba(78,205,196,.06);  border-left: 4px solid var(--h2c); padding: 10px 14px; }
+.block[data-type="h3"]   { background: rgba(249,202,36,.04);  border-left: 3px solid var(--h3c); padding: 8px 14px; }
+.block[data-type="h4"]   { background: rgba(253,150,68,.03);  border-left: 2px solid var(--h4c); padding: 7px 14px 7px 22px; }
+.block[data-type="h5"]   { background: rgba(162,155,254,.03); border-left: 2px solid var(--h5c); padding: 6px 14px 6px 30px; }
+.block[data-type="h6"]   { background: rgba(116,185,255,.02); border-left: 2px solid var(--h6c); padding: 5px 14px 5px 38px; }
+.block[data-type="list"]  { border-left: 3px solid var(--listc);  padding: 8px 14px;  background: rgba(255,107,107,.04); }
+.block[data-type="code"]  { border-left: 3px solid var(--codec);  padding: 10px 14px; background: rgba(0,0,0,.35); }
+.block[data-type="quote"] { border-left: 4px solid var(--quotec); padding: 8px 14px;  background: rgba(240,147,251,.05); font-style: italic; }
+.block[data-type="para"]  { border-left: 2px solid var(--border2); padding: 8px 14px 8px 16px; }
+
+/* Block inner layout */
+.block-inner { display: flex; align-items: flex-start; gap: 6px; }
+.collapse-btn {
+  background: none; border: none; cursor: pointer; color: var(--text3);
+  padding: 0 3px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: color .15s; margin-right: 2px;
+}
+.collapse-btn:hover { color: var(--text2); }
+.collapse-btn svg { width: 13px; height: 13px; transition: transform .18s; }
+.collapse-btn.open svg { transform: rotate(90deg); }
+.collapse-spacer { width: 19px; flex-shrink: 0; }
+
+.block-handle {
+  color: var(--text3); cursor: grab; flex-shrink: 0; padding-top: 3px;
+  opacity: 0; transition: opacity .15s;
+}
+.block:hover .block-handle { opacity: 1; }
+.block-handle svg { width: 12px; height: 12px; }
+
+.block-body { flex: 1; min-width: 0; }
+.block-actions {
+  display: flex; gap: 3px; flex-shrink: 0; opacity: 0;
+  transition: opacity .15s; padding-top: 2px; align-items: flex-start;
+}
+.block:hover .block-actions { opacity: 1; }
+.block-action-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  padding: 3px; border-radius: 4px; transition: all .1s;
+  display: flex; align-items: center; justify-content: center;
+}
+.block-action-btn:hover { background: var(--surface); color: var(--text2); }
+.block-action-btn.del:hover { color: var(--accent3); }
+.block-action-btn svg { width: 12px; height: 12px; }
+
+/* Block text */
+.block-text {
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6;
+  color: var(--text); word-break: break-word; white-space: pre-wrap;
+  cursor: text; border: 1px solid transparent; border-radius: 4px;
+  padding: 1px 3px; margin: -1px -3px; transition: border-color .15s;
+  min-height: 22px; outline: none;
+}
+.block-text:focus { border-color: var(--border2); background: rgba(0,0,0,.2); }
+.block[data-type="h1"] .block-text   { font-size: 17px; font-weight: 700; color: var(--h1c); }
+.block[data-type="h2"] .block-text   { font-size: 15px; font-weight: 600; color: var(--h2c); }
+.block[data-type="h3"] .block-text   { font-size: 13px; font-weight: 600; color: var(--h3c); }
+.block[data-type="h4"] .block-text   { font-size: 12px; font-weight: 600; color: var(--h4c); }
+.block[data-type="h5"] .block-text   { font-size: 12px; font-weight: 500; color: var(--h5c); }
+.block[data-type="h6"] .block-text   { font-size: 12px; font-weight: 500; color: var(--h6c); opacity: .85; }
+.block[data-type="code"] .block-text  { font-size: 12px; color: var(--codec); }
+.block[data-type="quote"] .block-text { color: var(--quotec); }
+.block[data-type="para"] .block-text  { color: var(--text2); }
+
+/* List rows */
+.block-list-items { display: flex; flex-direction: column; gap: 2px; }
+.block-list-row {
+  display: flex; align-items: flex-start; gap: 6px;
+  border-radius: 5px; padding: 2px 4px 2px 2px;
+  border: 1px solid transparent; transition: background .1s, border-color .1s;
+  position: relative; cursor: default;
+}
+.block-list-row:hover { background: rgba(255,107,107,.06); border-color: rgba(255,107,107,.15); }
+.block-list-row.dragging-item { opacity: .3; transform: scale(.98); }
+.block-list-row.drop-before::before {
+  content: ''; position: absolute; top: -2px; left: 0; right: 0;
+  height: 2px; background: var(--listc); border-radius: 1px;
+}
+.block-list-row.drop-after::after {
+  content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+  height: 2px; background: var(--listc); border-radius: 1px;
+}
+.list-row-handle {
+  color: var(--text3); cursor: grab; flex-shrink: 0; padding-top: 4px;
+  opacity: 0; transition: opacity .12s; display: flex; align-items: flex-start;
+}
+.block-list-row:hover .list-row-handle { opacity: 1; }
+.list-row-handle svg { width: 10px; height: 10px; }
+.block-list-bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--listc); flex-shrink: 0; margin-top: 7px; }
+.block-list-item-text {
+  font-size: 13px; color: var(--text); line-height: 1.5; flex: 1;
+  cursor: text; border: 1px solid transparent; border-radius: 3px;
+  padding: 1px 3px; min-height: 20px; outline: none; white-space: pre-wrap;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  -webkit-user-drag: none; /* prevent Safari text drag */
+}
+.block-list-item-text:focus { border-color: var(--border2); background: rgba(0,0,0,.2); }
+.list-row-del {
+  background: none; border: none; color: transparent; cursor: pointer;
+  padding: 3px; border-radius: 3px; flex-shrink: 0; display: flex;
+  align-items: center; transition: all .1s;
+}
+.block-list-row:hover .list-row-del { color: var(--text3); }
+.list-row-del:hover { background: var(--surface3); color: var(--accent3) !important; }
+.list-row-del svg { width: 10px; height: 10px; }
+
+/* .add-block-btn shared */
+.add-block-btn {
+  background: none; border: 1px solid var(--border); color: var(--text3);
+  cursor: pointer; padding: 4px 9px; border-radius: 5px; font-size: 11px;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; transition: all .15s;
+}
+.add-block-btn:hover { background: var(--surface2); color: var(--text2); border-color: var(--border2); }
+
+/* ==========================================================
+   IMPORT BUTTON & FILE DROP OVERLAY
+   ========================================================== */
+.panel-import-btn {
+  background: none; border: 1px solid var(--border); color: var(--text2);
+  cursor: pointer; padding: 4px 10px; border-radius: 5px; font-size: 11px;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  display: flex; align-items: center; gap: 5px; transition: all .15s;
+}
+.panel-import-btn:hover { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+.panel-import-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+/* Panels need relative positioning for overlay */
+#panel-blocks, #panel-editor { position: relative; }
+
+.file-drop-overlay {
+  display: none;
+  position: absolute; inset: 0; z-index: 50;
+  background: rgba(14,14,18,.85);
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius);
+  align-items: center; justify-content: center;
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+}
+.file-drop-overlay.active {
+  display: flex;
+  pointer-events: auto;
+}
+.file-drop-label {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  color: var(--accent); font-size: 14px; font-weight: 600;
+  letter-spacing: .04em;
+  padding: 24px 32px; background: rgba(124,106,247,.12);
+  border-radius: 12px;
+}
+.file-drop-label svg { width: 32px; height: 32px; }
+#resize-handle {
+  width: 4px; background: var(--border); cursor: col-resize;
+  flex-shrink: 0; transition: background .15s;
+}
+#resize-handle:hover, #resize-handle.dragging { background: var(--accent); }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+#toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface3); border: 1px solid var(--border2);
+  color: var(--text); padding: 8px 18px; border-radius: 8px;
+  font-size: 12px; opacity: 0; transition: all .25s;
+  pointer-events: none; z-index: 9999; white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 640px) {
+  :root { --menu-w: 220px; }
+  #panel-blocks { width: 45%; }
+  .tb-btn span { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== TITLEBAR ==================== -->
+<div id="titlebar">
+  <div id="logo"><div id="logo-icon">〰️</div><div id="logo-name">VibeScratch</div></div>
+  <div class="tb-divider"></div>
+  <button class="tb-btn" id="btn-menu" onclick="toggleMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <span>Menu</span>
+  </button>
+  <div class="tb-divider"></div>
+  <button class="tb-btn" onclick="exportMarkdown()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <span>Export</span>
+  </button>
+  <div id="tb-spacer"></div>
+  <button class="tb-btn" onclick="toggleFullscreen()">
+    <svg id="fs-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+    <svg id="fs-compress" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 0 2 2v3"/></svg>
+  </button>
+</div>
+
+<!-- ==================== APP LAYOUT ==================== -->
+<div id="app">
+
+  <!-- Sidebar -->
+  <div id="menu" class="collapsed">
+    <div id="menu-header">Navigator</div>
+    <div id="menu-content">
+    </div>
+  </div>
+
+  <div id="main">
+    <!-- Left panel: Blocks -->
+    <div class="panel" id="panel-blocks">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Palette
+        </div>
+        <div class="panel-actions">
+          <button class="panel-import-btn" onclick="triggerImport('left')" title="Import markdown file">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+          </button>
+          <div class="seg-ctrl" id="left-seg">
+            <button class="seg-btn active" id="seg-left-block" onclick="setPanelMode('left','block')">Block</button>
+            <button class="seg-btn" id="seg-left-text" onclick="setPanelMode('left','text')">Text</button>
+            <button class="seg-btn" id="seg-left-preview" onclick="setPanelMode('left','preview')">Preview</button>
+          </div>
+        </div>
+      </div>
+      <!-- Block mode -->
+      <div id="left-block-content" class="panel-block-content"></div>
+      <!-- Text mode -->
+      <div id="left-text-pane" class="panel-text-pane hidden">
+        <textarea id="blocks-textarea" placeholder="# Heading 1&#10;## Heading 2&#10;- List item&#10;&#10;Paragraph text"></textarea>
+      </div>
+      <!-- Preview mode -->
+      <div id="left-preview-pane" class="panel-preview-pane hidden"></div>
+      <!-- Add bar -->
+      <div id="left-add-block-bar" class="add-block-bar-shared">
+        <span style="font-size:10px;color:var(--text3);align-self:center;margin-right:2px;">+</span>
+        <button class="add-block-btn" onclick="addBlock('left','h1')">H1</button>
+        <button class="add-block-btn" onclick="addBlock('left','h2')">H2</button>
+        <button class="add-block-btn" onclick="addBlock('left','h3')">H3</button>
+        <button class="add-block-btn" onclick="addBlock('left','list')">List</button>
+        <button class="add-block-btn" onclick="addBlock('left','code')">Code</button>
+        <button class="add-block-btn" onclick="addBlock('left','para')">Para</button>
+      </div>
+      <div class="file-drop-overlay" id="drop-overlay-left">
+        <div class="file-drop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Drop .md file to import
+        </div>
+      </div>
+    </div>
+
+    <div id="resize-handle"></div>
+
+    <!-- Right panel: Block Editor -->
+    <div class="panel" id="panel-editor">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Block Editor
+        </div>
+        <div class="panel-actions">
+          <button class="panel-import-btn" onclick="triggerImport('right')" title="Import markdown file">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+          </button>
+          <div class="seg-ctrl" id="editor-seg">
+            <button class="seg-btn active" id="seg-right-block" onclick="setPanelMode('right','block')">Block</button>
+            <button class="seg-btn" id="seg-right-text" onclick="setPanelMode('right','text')">Text</button>
+            <button class="seg-btn" id="seg-right-preview" onclick="setPanelMode('right','preview')">Preview</button>
+          </div>
+        </div>
+      </div>
+      <!-- Block mode -->
+      <div id="right-block-content" class="panel-block-content"></div>
+      <!-- Text mode -->
+      <div id="right-text-pane" class="panel-text-pane hidden"></div>
+      <!-- Preview mode -->
+      <div id="right-preview-pane" class="panel-preview-pane hidden"></div>
+      <!-- Add bar -->
+      <div id="right-add-block-bar" class="add-block-bar-shared">
+        <span style="font-size:10px;color:var(--text3);align-self:center;margin-right:2px;">+</span>
+        <button class="add-block-btn" onclick="addBlock('right','h1')">H1</button>
+        <button class="add-block-btn" onclick="addBlock('right','h2')">H2</button>
+        <button class="add-block-btn" onclick="addBlock('right','h3')">H3</button>
+        <button class="add-block-btn" onclick="addBlock('right','list')">List</button>
+        <button class="add-block-btn" onclick="addBlock('right','code')">Code</button>
+        <button class="add-block-btn" onclick="addBlock('right','para')">Para</button>
+      </div>
+      <div class="file-drop-overlay" id="drop-overlay-right">
+        <div class="file-drop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Drop .md file to import
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<input type="file" id="file-import-input" accept=".md,.txt,text/markdown,text/plain" style="display:none">
+
+<script>
+/* ===========================================================
+   SHARED SVG ICONS (used in block rendering)
+   =========================================================== */
+const ICONS = {
+  grip:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>',
+  chev:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>',
+  copy:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+  cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+};
+
+/* ===========================================================
+   STATE
+   =========================================================== */
+let leftBlocks   = [];   // Blocks panel data
+let editorBlocks = [];   // Block Editor data (independent)
+let blockId      = 0;    // Auto-increment ID counter
+
+let leftMode   = 'blocks';
+let editorMode = 'block';
+
+const leftCollapsed   = new Set();
+const editorCollapsed = new Set();
+
+// Drag state
+let dragSrcIdx = null;
+let dragGroupIds = null;
+let dragOrigin = null; // 'left' | 'right'
+
+/* ===========================================================
+   UTILITIES
+   =========================================================== */
+function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function hLevel(t) { return t==='h1'?1:t==='h2'?2:t==='h3'?3:t==='h4'?4:t==='h5'?5:t==='h6'?6:Infinity; }
+function blocksOf(p) { return p === 'left' ? leftBlocks : editorBlocks; }
+function collapsedOf(p) { return p === 'left' ? leftCollapsed : editorCollapsed; }
+function newId() { return ++blockId; }
+
+function selectAll(el) {
+  const r = document.createRange();
+  r.selectNodeContents(el);
+  const s = window.getSelection();
+  s.removeAllRanges();
+  s.addRange(r);
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ===========================================================
+   MARKDOWN PARSE / SERIALIZE
+   =========================================================== */
+function parseMarkdown(text) {
+  const lines = text.split('\n');
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    const l = lines[i];
+    if (l.startsWith('```') || l.startsWith('~~~')) {
+      const fence = l.startsWith('~~~') ? '~~~' : '```';
+      let code = '', lang = l.slice(3).trim();
+      i++;
+      while (i < lines.length && !lines[i].startsWith(fence)) {
+        code += (code ? '\n' : '') + lines[i];
+        i++;
+      }
+      out.push({ id: newId(), type: 'code', text: code || '// code', lang });
+    } else if (l.startsWith('###### ')) out.push({ id: newId(), type: 'h6', text: l.slice(7) });
+    else if (l.startsWith('##### '))   out.push({ id: newId(), type: 'h5', text: l.slice(6) });
+    else if (l.startsWith('#### '))    out.push({ id: newId(), type: 'h4', text: l.slice(5) });
+    else if (l.startsWith('### '))     out.push({ id: newId(), type: 'h3', text: l.slice(4) });
+    else if (l.startsWith('## '))      out.push({ id: newId(), type: 'h2', text: l.slice(3) });
+    else if (l.startsWith('# '))       out.push({ id: newId(), type: 'h1', text: l.slice(2) });
+    else if (l.startsWith('> '))     out.push({ id: newId(), type: 'quote', text: l.slice(2) });
+    else if (l.match(/^[-*+] /)) {
+      const items = [];
+      while (i < lines.length && lines[i].match(/^[-*+] /)) {
+        items.push(lines[i].replace(/^[-*+] /, ''));
+        i++;
+      }
+      out.push({ id: newId(), type: 'list', text: items.join('\n') });
+      continue;
+    } else if (l.trim()) {
+      out.push({ id: newId(), type: 'para', text: l });
+    }
+    i++;
+  }
+  return out;
+}
+
+function serialize(arr) {
+  return arr.map(b => {
+    switch (b.type) {
+      case 'h1':    return '# ' + b.text;
+      case 'h2':    return '## ' + b.text;
+      case 'h3':    return '### ' + b.text;
+      case 'h4':    return '#### ' + b.text;
+      case 'h5':    return '##### ' + b.text;
+      case 'h6':    return '###### ' + b.text;
+      case 'list':  return b.text.split('\n').filter(s => s.trim()).map(l => '- ' + l).join('\n');
+      case 'code':  return '```' + (b.lang || '') + '\n' + b.text + '\n```';
+      case 'quote': return b.text.split('\n').map(l => '> ' + l).join('\n');
+      default:      return b.text;
+    }
+  }).join('\n\n');
+}
+
+/* ===========================================================
+   HEADING GROUP RANGE
+   =========================================================== */
+function groupRange(panel, idx) {
+  const arr = blocksOf(panel);
+  const lvl = hLevel(arr[idx].type);
+  if (lvl === Infinity) return [idx, idx];
+  let end = idx;
+  for (let i = idx + 1; i < arr.length; i++) {
+    if (hLevel(arr[i].type) <= lvl) break;
+    end = i;
+  }
+  return [idx, end];
+}
+
+/* ===========================================================
+   RENDER — shared tree builder
+   =========================================================== */
+function buildTree(arr, from, to, container, panel) {
+  let i = from;
+  while (i <= to) {
+    const b = arr[i];
+    const lvl = hLevel(b.type);
+    if (lvl < Infinity) {
+      let end = i;
+      for (let j = i + 1; j <= to; j++) { if (hLevel(arr[j].type) <= lvl) break; end = j; }
+      container.appendChild(mkGroup(b, i, end, panel));
+      i = end + 1;
+    } else {
+      container.appendChild(mkBlock(b, i, false, 0, false, panel));
+      i++;
+    }
+  }
+}
+
+function mkGroup(heading, start, end, panel) {
+  const collapsed = collapsedOf(panel).has(heading.id);
+  const childN = end - start;
+  const g = document.createElement('div');
+  g.className = 'block-group';
+  g.dataset.type = heading.type;
+  g.dataset.groupStart = start;
+  g.dataset.groupEnd = end;
+  g.dataset.id = heading.id;
+  g.dataset.panel = panel;
+  g.draggable = true;
+
+  g.appendChild(mkBlock(heading, start, true, childN, collapsed, panel));
+
+  if (childN > 0) {
+    const ch = document.createElement('div');
+    ch.className = 'block-children' + (collapsed ? ' collapsed' : '');
+    buildTree(blocksOf(panel), start + 1, end, ch, panel);
+    g.appendChild(ch);
+  }
+
+  g.addEventListener('dragstart', e => onDragStart(e, start, end, panel));
+  g.addEventListener('dragover',  e => onDragOver(e, g, start, panel, true));
+  g.addEventListener('dragleave', () => g.classList.remove('drag-target-before', 'drag-target-after'));
+  g.addEventListener('drop',      e => onDrop(e, g, start, end, panel, true));
+  g.addEventListener('dragend',   resetDrag);
+  return g;
+}
+
+function mkBlock(block, idx, isHead, childN, collapsed, panel) {
+  const el = document.createElement('div');
+  el.className = 'block';
+  el.dataset.type = block.type;
+  el.dataset.id = block.id;
+  el.dataset.flatIndex = idx;
+  el.dataset.panel = panel;
+
+  if (!isHead) {
+    // List blocks: drag is handled per-row in bindListEvents, not at the block level
+    // (parent-level drag would conflict with row-level drag for nested draggable elements)
+    if (block.type !== 'list') {
+      el.draggable = true;
+      el.addEventListener('dragstart', e => onDragStart(e, idx, idx, panel));
+      el.addEventListener('dragover',  e => onDragOver(e, el, idx, panel, false));
+      el.addEventListener('dragleave', () => el.classList.remove('drag-target-before', 'drag-target-after', 'list-merge-target'));
+      el.addEventListener('drop',      e => onDrop(e, el, idx, idx, panel, false));
+      el.addEventListener('dragend',   resetDrag);
+    } else {
+      // List blocks still need dragover/drop for same-panel list merge
+      el.addEventListener('dragover',  e => onDragOver(e, el, idx, panel, false));
+      el.addEventListener('dragleave', () => el.classList.remove('drag-target-before', 'drag-target-after', 'list-merge-target'));
+      el.addEventListener('drop',      e => onDrop(e, el, idx, idx, panel, false));
+    }
+  }
+
+  const hasKids = isHead && childN > 0;
+  const colBtn = hasKids
+    ? `<button class="collapse-btn ${collapsed ? '' : 'open'}" onclick="toggleCollapse('${panel}',${block.id})" title="${collapsed ? 'Expand' : 'Collapse'}" onmousedown="event.stopPropagation()">${ICONS.chev}</button>`
+    : (isHead ? '<div class="collapse-spacer"></div>' : '');
+
+  const body = block.type === 'list'
+    ? mkListHtml(block, idx, panel)
+    : `<div class="block-text" contenteditable="true" spellcheck="false">${esc(block.text)}</div>`;
+
+  el.innerHTML = `<div class="block-inner">
+    ${colBtn}
+    <div class="block-handle" aria-hidden="true">${ICONS.grip}</div>
+    <div class="block-body">${body}</div>
+    <div class="block-actions">
+      <button class="block-action-btn del" onclick="delBlock('${panel}',${idx})" title="Delete">${ICONS.trash}</button>
+    </div>
+  </div>`;
+
+  // Text editing
+  if (block.type !== 'list') {
+    const te = el.querySelector('.block-text');
+    if (te) {
+      te.addEventListener('input', () => {
+        blocksOf(panel)[idx].text = te.innerText;
+        if (panel === 'left') syncLeftTextarea();
+      });
+      te.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey && block.type !== 'code') {
+          e.preventDefault();
+          insertBlock(panel, idx + 1, { id: newId(), type: 'para', text: '' });
+        }
+      });
+    }
+  } else {
+    bindListEvents(el, block, idx, panel);
+  }
+  return el;
+}
+
+/* ===========================================================
+   LIST — HTML + event binding
+   =========================================================== */
+function mkListHtml(block, idx, panel) {
+  const items = (block.text || '').split('\n');
+  return `<div class="block-list-items" data-list-idx="${idx}" data-panel="${panel}">${
+    items.map((item, i) =>
+      `<div class="block-list-row" draggable="true" data-row="${i}">
+        <div class="list-row-handle" aria-hidden="true">${ICONS.grip}</div>
+        <div class="block-list-bullet" draggable="false"></div>
+        <div class="block-list-item-text" contenteditable="true" spellcheck="false" draggable="false" data-item="${i}">${esc(item)}</div>
+        <button class="list-row-del" tabindex="-1" draggable="false">${ICONS.cross}</button>
+      </div>`
+    ).join('')
+  }</div>`;
+}
+
+function bindListEvents(el, block, idx, panel) {
+  const arr = () => blocksOf(panel);
+  const rerender = () => { panel === 'left' ? renderPanel('left') : renderPanel('right'); };
+
+  // Text editing per row
+  el.querySelectorAll('.block-list-item-text').forEach(te => {
+    const ii = parseInt(te.dataset.item);
+    te.addEventListener('input', () => {
+      const p = arr()[idx].text.split('\n');
+      p[ii] = te.innerText;
+      arr()[idx].text = p.join('\n');
+      if (panel === 'left') syncLeftTextarea();
+    });
+    te.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const p = arr()[idx].text.split('\n');
+        p.splice(ii + 1, 0, '');
+        arr()[idx].text = p.join('\n');
+        rerender();
+        setTimeout(() => el.querySelector(`[data-item="${ii + 1}"]`)?.focus(), 30);
+      }
+      if (e.key === 'Backspace' && te.innerText === '') {
+        e.preventDefault();
+        const p = arr()[idx].text.split('\n');
+        if (p.length <= 1) return;
+        p.splice(ii, 1);
+        arr()[idx].text = p.join('\n');
+        rerender();
+        setTimeout(() => {
+          const prev = el.querySelector(`[data-item="${Math.max(0, ii - 1)}"]`);
+          if (prev) { prev.focus(); selectAll(prev); }
+        }, 30);
+      }
+    });
+  });
+
+  // Delete button per row
+  el.querySelectorAll('.list-row-del').forEach(btn => {
+    const row = btn.closest('.block-list-row');
+    const ii = parseInt(row.dataset.row);
+    btn.addEventListener('mousedown', e => e.preventDefault());
+    btn.addEventListener('click', () => {
+      const p = arr()[idx].text.split('\n');
+      if (p.length <= 1) { delBlock(panel, idx); return; }
+      p.splice(ii, 1);
+      arr()[idx].text = p.join('\n');
+      rerender();
+    });
+  });
+
+  // Row DnD (internal reorder + cross-panel drop target)
+  const container = el.querySelector('.block-list-items');
+  if (!container) return;
+  let rowDrag = null;
+
+  container.querySelectorAll('.block-list-row').forEach(row => {
+    const ri = parseInt(row.dataset.row);
+
+    row.addEventListener('dragstart', e => {
+      // Prevent right-panel rows from accidentally triggering cross-panel logic
+      if (dragOrigin === 'left' && panel === 'right') { e.preventDefault(); return; }
+      // Only cancel if user has an active text selection (actually editing), not just focus
+      const sel = window.getSelection();
+      if (sel && sel.toString().length > 0 && row.contains(sel.anchorNode)) { e.preventDefault(); return; }
+      e.stopPropagation();
+      rowDrag = ri;
+      // For left-panel rows, expose as a cross-panel drag source so initCrossPanel can handle drops
+      if (panel === 'left') {
+        dragSrcIdx = idx;   // flat index of the parent list block in leftBlocks
+        dragOrigin = 'left';
+      }
+      e.dataTransfer.effectAllowed = panel === 'left' ? 'copy' : 'move';
+      // Store the specific row text for cross-panel drops (single item)
+      const rowText = arr()[idx].text.split('\n')[ri] ?? '';
+      e.dataTransfer.setData('text/plain', panel === 'left' ? 'listrow:' + rowText : 'listrow');
+      setTimeout(() => row.classList.add('dragging-item'), 0);
+    });
+
+    row.addEventListener('dragover', e => {
+      // Cross-panel: show row indicator
+      if (dragOrigin === 'left' && panel === 'right') {
+        e.preventDefault();
+        clearRowHighlights(container);
+        const rect = row.getBoundingClientRect();
+        row.classList.add(e.clientY < rect.top + rect.height / 2 ? 'drop-before' : 'drop-after');
+        return;
+      }
+      if (rowDrag === null) return;
+      e.preventDefault(); e.stopPropagation();
+      clearRowHighlights(container);
+      if (ri === rowDrag) return;
+      const rect = row.getBoundingClientRect();
+      row.classList.add(e.clientY < rect.top + rect.height / 2 ? 'drop-before' : 'drop-after');
+    });
+
+    row.addEventListener('dragleave', () => row.classList.remove('drop-before', 'drop-after'));
+
+    row.addEventListener('drop', e => {
+      // Cross-panel: insert the specific dragged row text (not the whole list block)
+      if (dragOrigin === 'left' && panel === 'right') {
+        e.preventDefault(); e.stopPropagation();
+        // Read the single row text stored in dataTransfer at dragstart
+        const dt = e.dataTransfer.getData('text/plain');
+        const itemText = dt.startsWith('listrow:') ? dt.slice('listrow:'.length) : leftBlocks[dragSrcIdx]?.text ?? '';
+        const rect = row.getBoundingClientRect();
+        const before = e.clientY < rect.top + rect.height / 2;
+        const parts = arr()[idx].text.split('\n');
+        const ins = Math.max(0, Math.min(before ? ri : ri + 1, parts.length));
+        parts.splice(ins, 0, itemText);
+        arr()[idx].text = parts.join('\n');
+        resetDrag(); rerender();
+        toast('Added list item');
+        cleanup(); return;
+      }
+      // Internal row reorder
+      e.preventDefault(); e.stopPropagation();
+      if (rowDrag === null || rowDrag === ri) { cleanup(); return; }
+      const rect = row.getBoundingClientRect();
+      const before = e.clientY < rect.top + rect.height / 2;
+      const p = arr()[idx].text.split('\n');
+      const moved = p.splice(rowDrag, 1)[0];
+      let ins = ri > rowDrag ? ri - 1 : ri;
+      if (!before) ins++;
+      p.splice(Math.max(0, Math.min(ins, p.length)), 0, moved);
+      arr()[idx].text = p.join('\n');
+      cleanup(); rerender();
+    });
+
+    row.addEventListener('dragend', cleanup);
+  });
+
+  function cleanup() {
+    rowDrag = null;
+    // If this was a left-panel row acting as cross-panel drag source, reset global drag state
+    if (panel === 'left') resetDrag();
+    clearRowHighlights(container);
+  }
+}
+
+function clearRowHighlights(container) {
+  container.querySelectorAll('.block-list-row').forEach(r =>
+    r.classList.remove('dragging-item', 'drop-before', 'drop-after'));
+}
+
+/* ===========================================================
+   RENDER PANELS — unified
+   =========================================================== */
+const PANEL_IDS = {
+  left:  { block: 'left-block-content',  text: 'left-text-pane',  preview: 'left-preview-pane',  addBar: 'left-add-block-bar'  },
+  right: { block: 'right-block-content', text: 'right-text-pane', preview: 'right-preview-pane', addBar: 'right-add-block-bar' },
+};
+
+function renderPanel(panel) {
+  const ids = PANEL_IDS[panel];
+  const arr = blocksOf(panel);
+  const c = document.getElementById(ids.block);
+  c.innerHTML = '';
+  if (!arr.length) {
+    c.innerHTML = `<div style="color:var(--text3);font-size:12px;padding:24px;text-align:center;line-height:2">${
+      panel === 'left' ? 'Enter markdown text' : 'Drag blocks from the left panel<br>or use + buttons below'
+    }</div>`;
+    return;
+  }
+  buildTree(arr, 0, arr.length - 1, c, panel);
+}
+
+// Aliases for backward compat
+function renderEditor() { renderPanel('right'); }
+function renderLeft()   { renderPanel('left');  }
+
+/* ===========================================================
+   COLLAPSE
+   =========================================================== */
+function toggleCollapse(panel, id) {
+  const s = collapsedOf(panel);
+  s.has(id) ? s.delete(id) : s.add(id);
+  panel === 'left' ? renderPanel('left') : renderPanel('right');
+}
+
+/* ===========================================================
+   DRAG & DROP — unified for both panels
+   =========================================================== */
+function onDragStart(e, startIdx, endIdx, panel) {
+  e.stopPropagation();
+  dragSrcIdx = startIdx;
+  dragOrigin = panel;
+  dragGroupIds = new Set();
+  const arr = blocksOf(panel);
+  for (let i = startIdx; i <= endIdx; i++) dragGroupIds.add(arr[i].id);
+  // Left panel: copy to editor. Right panel: move within editor.
+  e.dataTransfer.effectAllowed = panel === 'left' ? 'copy' : 'move';
+  e.dataTransfer.setData('text/plain', 'block');
+  setTimeout(() => {
+    document.querySelectorAll(`[data-panel="${panel}"]`).forEach(el => {
+      if (dragGroupIds.has(parseInt(el.dataset.id))) el.classList.add('group-dragging');
+    });
+  }, 0);
+}
+
+function onDragOver(e, el, targetIdx, panel, isGroup) {
+  // Cross-panel (left→right): defer entirely to editor-content.dragover
+  if (dragSrcIdx !== null && dragOrigin !== panel) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    return; // don't stopPropagation — let editor-content.dragover handle visuals
+  }
+  // Skip if no block-level drag active (e.g. a list-row drag is in progress)
+  if (dragSrcIdx === null || !dragGroupIds) return;
+  const arr = blocksOf(panel);
+  if (dragGroupIds.has(arr[targetIdx]?.id)) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.stopPropagation();
+  clearIndicators();
+  const rect = el.getBoundingClientRect();
+  el.classList.add(e.clientY < rect.top + rect.height / 2 ? 'drag-target-before' : 'drag-target-after');
+}
+
+function onDrop(e, el, targetStart, targetEnd, panel, isGroup) {
+  // Cross-panel: let editor-content handler process it
+  if (dragSrcIdx !== null && dragOrigin === 'left' && panel === 'right') {
+    e.preventDefault();
+    return;
+  }
+  // Skip if no block-level drag active (list-row drag handled by row drop handlers)
+  if (dragSrcIdx === null || !dragGroupIds) return;
+  e.preventDefault(); e.stopPropagation();
+
+  const arr = blocksOf(panel);
+  const [ss, se] = groupRange(panel, dragSrcIdx);
+
+  // Same-panel list merge
+  const srcB = arr[dragSrcIdx], tgtB = arr[targetStart];
+  if (!isGroup && srcB?.type === 'list' && tgtB?.type === 'list' && dragSrcIdx !== targetStart) {
+    const items = srcB.text.split('\n').filter(s => s.trim());
+    arr.splice(dragSrcIdx, 1);
+    const adj = targetStart > dragSrcIdx ? targetStart - 1 : targetStart;
+    arr[adj].text += '\n' + items.join('\n');
+    if (panel === 'left') { syncLeftTextarea(); renderPanel('left'); } else renderPanel('right');
+    resetDrag();
+    setTimeout(() => document.querySelector(`[data-flat-index="${adj}"][data-panel="${panel}"]`)?.classList.add('merge-flash'), 10);
+    toast('Lists merged'); return;
+  }
+
+  // Skip self-drop
+  if (targetStart >= ss && targetStart <= se) { resetDrag(); return; }
+
+  // Move group
+  const rect = el.getBoundingClientRect();
+  const before = e.clientY < rect.top + rect.height / 2;
+  const grp = arr.splice(ss, se - ss + 1);
+  let ins = targetStart > ss ? targetStart - grp.length : targetStart;
+  if (!before) ins += (targetEnd - targetStart + 1);
+  ins = Math.max(0, Math.min(ins, arr.length));
+  arr.splice(ins, 0, ...grp);
+  if (panel === 'left') { syncLeftTextarea(); renderPanel('left'); } else renderPanel('right');
+  resetDrag();
+  toast('Moved ' + grp.length + ' block(s)');
+}
+
+/* ===========================================================
+   CROSS-PANEL DROP — editor-content handler
+   =========================================================== */
+function initCrossPanel() {
+  const c = document.getElementById('right-block-content');
+
+  c.addEventListener('dragover', e => {
+    if (dragSrcIdx === null || dragOrigin !== 'left') return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    c.classList.add('drag-receiving');
+    clearIndicators();
+    clearAllRowHighlights();
+
+    const blocks = [...c.querySelectorAll('.block[data-flat-index]')];
+    if (!blocks.length) return;
+
+    let target = null, before = true;
+    for (let i = 0; i < blocks.length; i++) {
+      const r = blocks[i].getBoundingClientRect();
+      if (e.clientY < r.top + r.height / 2) { target = blocks[i]; before = true; break; }
+      if (i === blocks.length - 1) { target = blocks[i]; before = false; }
+    }
+    if (!target) return;
+
+    const srcType = leftBlocks[dragSrcIdx]?.type;
+    if (srcType === 'list' && target.dataset.type === 'list') {
+      const rows = [...target.querySelectorAll('.block-list-row')];
+      if (rows.length) {
+        let nr = rows[rows.length - 1], nb = false;
+        for (const r of rows) {
+          const rect = r.getBoundingClientRect();
+          if (e.clientY < rect.top + rect.height / 2) { nr = r; nb = true; break; }
+        }
+        nr.classList.add(nb ? 'drop-before' : 'drop-after');
+        return;
+      }
+      target.classList.add('list-merge-target');
+    } else {
+      target.classList.add(before ? 'drag-target-before' : 'drag-target-after');
+    }
+  });
+
+  c.addEventListener('drop', e => {
+    if (dragSrcIdx === null || dragOrigin !== 'left') return;
+    e.preventDefault(); e.stopPropagation();
+    c.classList.remove('drag-receiving');
+    clearIndicators();
+    clearAllRowHighlights();
+
+    const src = leftBlocks[dragSrcIdx];
+    if (!src) { resetDrag(); return; }
+
+    // Detect if this was a single list-row drag (text stored in dataTransfer)
+    const dtText = e.dataTransfer.getData('text/plain');
+    const isListRowDrag = dtText.startsWith('listrow:');
+    const rowItemText = isListRowDrag ? dtText.slice('listrow:'.length) : null;
+
+    // Single list-row drag → insert only that row into a list block (or create new list block)
+    if (isListRowDrag && rowItemText !== null) {
+      const edBlocks = [...c.querySelectorAll('.block[data-flat-index]')];
+      let near = null;
+      for (let i = 0; i < edBlocks.length; i++) {
+        const r = edBlocks[i].getBoundingClientRect();
+        if (e.clientY < r.top + r.height / 2) { near = edBlocks[i]; break; }
+        if (i === edBlocks.length - 1) near = edBlocks[i];
+      }
+      if (near?.dataset.type === 'list') {
+        // Insert item at row level inside existing list block
+        const ti = parseInt(near.dataset.flatIndex);
+        const rows = [...near.querySelectorAll('.block-list-row')];
+        let ins = editorBlocks[ti].text.split('\n').length;
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i].getBoundingClientRect();
+          if (e.clientY < r.top + r.height / 2) { ins = i; break; }
+        }
+        const parts = editorBlocks[ti].text.split('\n');
+        parts.splice(ins, 0, rowItemText);
+        editorBlocks[ti].text = parts.join('\n');
+        resetDrag(); renderPanel('right');
+        setTimeout(() => document.querySelector(`#right-block-content [data-flat-index="${ti}"]`)?.classList.add('merge-flash'), 10);
+        toast('Added list item'); return;
+      }
+      // No adjacent list: create new list block
+      const edBlocks2 = [...c.querySelectorAll('.block[data-flat-index]')];
+      let ins = editorBlocks.length;
+      for (const el of edBlocks2) {
+        const rect = el.getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) { ins = parseInt(el.dataset.flatIndex); break; }
+      }
+      editorBlocks.splice(Math.max(0, Math.min(ins, editorBlocks.length)), 0, { id: newId(), type: 'list', text: rowItemText });
+      resetDrag(); renderPanel('right');
+      toast('Added list block'); return;
+    }
+
+    // Copy entire group (heading + children, or single leaf block)
+    const [ss, se] = groupRange('left', dragSrcIdx);
+    const newBlocks = leftBlocks.slice(ss, se + 1).map(b => ({ ...b, id: newId() }));
+
+    const edBlocks = [...c.querySelectorAll('.block[data-flat-index]')];
+    let ins = editorBlocks.length;
+    for (const el of edBlocks) {
+      const rect = el.getBoundingClientRect();
+      if (e.clientY < rect.top + rect.height / 2) { ins = parseInt(el.dataset.flatIndex); break; }
+    }
+    ins = Math.max(0, Math.min(ins, editorBlocks.length));
+    editorBlocks.splice(ins, 0, ...newBlocks);
+    resetDrag(); renderPanel('right');
+    toast('Copied ' + newBlocks.length + ' block(s)');
+  });
+
+  c.addEventListener('dragleave', e => {
+    if (!c.contains(e.relatedTarget)) {
+      c.classList.remove('drag-receiving');
+      clearIndicators();
+      clearAllRowHighlights();
+    }
+  });
+}
+
+/* ===========================================================
+   DRAG HELPERS
+   =========================================================== */
+// Show editor highlight when left-panel drag starts
+document.addEventListener('dragstart', e => {
+  if (e.target.closest?.('[data-panel="left"]'))
+    document.getElementById('right-block-content').classList.add('drag-receiving');
+}, true);
+document.addEventListener('dragend', () => {
+  document.getElementById('right-block-content').classList.remove('drag-receiving');
+}, true);
+
+function resetDrag() {
+  dragSrcIdx = null; dragGroupIds = null; dragOrigin = null;
+  clearIndicators();
+  document.querySelectorAll('.group-dragging').forEach(el => el.classList.remove('group-dragging'));
+  document.getElementById('left-block-content').classList.remove('drag-receiving');
+  document.getElementById('right-block-content').classList.remove('drag-receiving');
+}
+
+function clearIndicators() {
+  document.querySelectorAll('.drag-target-before,.drag-target-after,.list-merge-target').forEach(el =>
+    el.classList.remove('drag-target-before', 'drag-target-after', 'list-merge-target'));
+}
+
+function clearAllRowHighlights() {
+  document.querySelectorAll('.block-list-row.drop-before,.block-list-row.drop-after').forEach(r =>
+    r.classList.remove('drop-before', 'drop-after'));
+}
+
+/* ===========================================================
+   BLOCK OPERATIONS
+   =========================================================== */
+function addBlock(panel, type) {
+  const placeholders = { h1: 'Heading 1', h2: 'Heading 2', h3: 'Heading 3', list: 'List item', code: '// code', quote: 'Quote text', para: 'Paragraph text' };
+  blocksOf(panel).push({ id: newId(), type, text: placeholders[type] || '' });
+  if (panel === 'left') syncLeftTextarea();
+  renderPanel(panel);
+  const blockSel = `#${PANEL_IDS[panel].block} .block-text,#${PANEL_IDS[panel].block} .block-list-item-text`;
+  setTimeout(() => {
+    const els = document.querySelectorAll(blockSel);
+    if (els.length) { const last = els[els.length - 1]; last.focus(); selectAll(last); }
+  }, 50);
+}
+
+function insertBlock(panel, idx, block) {
+  blocksOf(panel).splice(idx, 0, block);
+  if (panel === 'left') syncLeftTextarea();
+  renderPanel(panel);
+  setTimeout(() => {
+    const sel = `#${PANEL_IDS[panel].block} .block-text`;
+    document.querySelectorAll(sel)[idx]?.focus();
+  }, 50);
+}
+
+function delBlock(panel, idx) {
+  blocksOf(panel).splice(idx, 1);
+  if (panel === 'left') syncLeftTextarea();
+  renderPanel(panel);
+  toast('Block deleted');
+}
+
+
+/* ===========================================================
+   PANEL MODES — unified
+   =========================================================== */
+function syncLeftTextarea() {
+  document.getElementById('blocks-textarea').value = serialize(leftBlocks);
+}
+
+// panelModes: track current mode per panel
+const panelModes = { left: 'block', right: 'block' };
+
+function setPanelMode(panel, mode) {
+  panelModes[panel] = mode;
+  const ids = PANEL_IDS[panel];
+  const prefix = panel === 'left' ? 'left' : 'right';
+
+  // Update seg buttons
+  document.getElementById(`seg-${prefix}-block`).classList.toggle('active', mode === 'block');
+  document.getElementById(`seg-${prefix}-text`).classList.toggle('active', mode === 'text');
+  document.getElementById(`seg-${prefix}-preview`).classList.toggle('active', mode === 'preview');
+
+  // Show/hide panes
+  document.getElementById(ids.block).classList.toggle('hidden', mode !== 'block');
+  document.getElementById(ids.addBar).classList.toggle('hidden', mode !== 'block');
+  document.getElementById(ids.preview).classList.toggle('hidden', mode !== 'preview');
+  document.getElementById(ids.text).classList.toggle('hidden', mode !== 'text');
+
+  if (mode === 'block') {
+    // Auto-apply any text edits before switching back to block mode
+    if (panel === 'right') {
+      const ta = document.getElementById(ids.text)?.querySelector('textarea');
+      if (ta) editorBlocks = parseMarkdown(ta.value);
+    } else if (panel === 'left') {
+      const taVal = document.getElementById('blocks-textarea')?.value;
+      if (taVal !== undefined) {
+        leftBlocks = parseMarkdown(taVal);
+        // don't call syncLeftTextarea here — that would overwrite what the user typed
+      }
+    }
+    renderPanel(panel);
+  } else if (mode === 'text') {
+    if (panel === 'left') {
+      syncLeftTextarea();
+    } else {
+      // Build right text pane via DOM (avoid esc/innerHTML for textarea value)
+      const tp = document.getElementById(ids.text);
+      let ta = tp.querySelector('textarea');
+      if (!ta) {
+        tp.innerHTML = '';
+        ta = document.createElement('textarea');
+        tp.appendChild(ta);
+        const bar = document.createElement('div');
+        bar.id = 'right-text-sync-bar';
+        bar.innerHTML = '<span>Plain text editing</span><button class="sync-btn" onclick="applyTextEdit()">Apply to blocks</button>';
+        tp.appendChild(bar);
+      }
+      ta.value = serialize(editorBlocks);
+    }
+  } else if (mode === 'preview') {
+    document.getElementById(ids.preview).innerHTML = renderPreviewHtml(panel);
+  }
+  toast({ block: 'Block mode', text: 'Text mode', preview: 'Preview mode' }[mode]);
+}
+
+function applyTextEdit() {
+  const ta = document.getElementById('right-text-pane')?.querySelector('textarea');
+  if (!ta) return;
+  editorBlocks = parseMarkdown(ta.value);
+  setPanelMode('right', 'block');
+  toast('Applied text to blocks');
+}
+
+// Backward compat aliases
+function setLeftMode(mode) {
+  // old 'text' → 'text', old 'blocks' → 'block'
+  setPanelMode('left', mode === 'blocks' ? 'block' : mode);
+}
+function setEditorMode(mode) { setPanelMode('right', mode); }
+
+/* ===========================================================
+   PREVIEW / EXPORT / FULLSCREEN / MENU
+   =========================================================== */
+function renderPreviewHtml(panel) {
+  const arr = panel === 'left' ? leftBlocks : editorBlocks;
+  return serialize(arr)
+    .replace(/^###### (.+)$/gm, '<h6>$1</h6>')
+    .replace(/^##### (.+)$/gm,  '<h5>$1</h5>')
+    .replace(/^#### (.+)$/gm,   '<h4>$1</h4>')
+    .replace(/^### (.+)$/gm,    '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,     '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,      '<h1>$1</h1>')
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/(?:```|~~~)[\w]*\n([\s\S]*?)(?:```|~~~)/g, (_, c) => '<pre>' + esc(c.trim()) + '</pre>')
+    .replace(/^[-*+] (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n\n/g, '\n')
+    .replace(/^(?!<[h1-6ulpbcod])(.+)$/gm, m => m.trim() ? '<p>' + m + '</p>' : '');
+}
+
+function exportMarkdown() {
+  const blob = new Blob([serialize(editorBlocks)], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'vibescratch-export.md';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+  toast('Markdown exported');
+}
+
+function toggleMenu() {
+  const m = document.getElementById('menu');
+  m.classList.toggle('collapsed');
+  document.getElementById('btn-menu').classList.toggle('active', !m.classList.contains('collapsed'));
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+    document.getElementById('fs-expand').style.display = 'none';
+    document.getElementById('fs-compress').style.display = '';
+  } else {
+    document.exitFullscreen();
+    document.getElementById('fs-expand').style.display = '';
+    document.getElementById('fs-compress').style.display = 'none';
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) {
+    document.getElementById('fs-expand').style.display = '';
+    document.getElementById('fs-compress').style.display = 'none';
+  }
+});
+
+/* ===========================================================
+   RESIZE HANDLE
+   =========================================================== */
+function initResize() {
+  const h = document.getElementById('resize-handle');
+  const p = document.getElementById('panel-blocks');
+  let sx, sw;
+
+  h.addEventListener('mousedown', e => {
+    sx = e.clientX; sw = p.offsetWidth;
+    h.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    const move = e => { p.style.width = Math.max(180, Math.min(sw + e.clientX - sx, innerWidth * .7)) + 'px'; };
+    const up = () => { h.classList.remove('dragging'); document.body.style.cursor = ''; document.body.style.userSelect = ''; removeEventListener('mousemove', move); removeEventListener('mouseup', up); };
+    addEventListener('mousemove', move);
+    addEventListener('mouseup', up);
+  });
+
+  h.addEventListener('touchstart', e => {
+    sx = e.touches[0].clientX; sw = p.offsetWidth;
+    const move = e => { p.style.width = Math.max(140, Math.min(sw + e.touches[0].clientX - sx, innerWidth * .7)) + 'px'; };
+    const up = () => { removeEventListener('touchmove', move); removeEventListener('touchend', up); };
+    addEventListener('touchmove', move, { passive: true });
+    addEventListener('touchend', up);
+  }, { passive: true });
+}
+
+/* ===========================================================
+   INIT
+   =========================================================== */
+window.addEventListener('DOMContentLoaded', () => {
+  // Load sample content
+  document.getElementById('blocks-textarea').value =
+`# Welcome to VibeScratch
+
+## Getting Started
+
+Parse your markdown text into blocks using the left panel.
+
+### Block Mode
+
+Switch to Block view to drag blocks into the editor.
+
+## Key Features
+
+- Drag headings to move entire sections
+- Collapse sections with the arrow toggle
+- Drop a list onto another list to merge
+- Edit any block text inline
+
+### Code Example
+
+\`\`\`javascript
+const greet = () => {
+  console.log("VibeScratch!");
+};
+greet();
+\`\`\`
+
+## Learn More
+
+- Export your work as a Markdown file
+- Switch to Preview mode to see rendered output
+- Use Text mode for raw markdown editing
+
+> The block editor gives you full control.
+
+Paragraph blocks work just like any other block.`;
+
+  // Parse left panel
+  leftBlocks = parseMarkdown(document.getElementById('blocks-textarea').value);
+  renderPanel('left');
+
+  // Copy to editor as initial content
+  editorBlocks = leftBlocks.map(b => ({ ...b, id: newId() }));
+  renderPanel('right');
+
+  // Auto-sync textarea → leftBlocks (Text mode on left panel)
+  let debounce;
+  document.getElementById('blocks-textarea').addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      leftBlocks = parseMarkdown(document.getElementById('blocks-textarea').value);
+      if (panelModes.left === 'block') renderPanel('left');
+    }, 600);
+  });
+
+  initResize();
+  initCrossPanel();
+  initFileImport();
+});
+
+/* ===========================================================
+   FILE IMPORT
+   =========================================================== */
+let _importTarget = 'left'; // which panel to import into
+
+function triggerImport(panel) {
+  _importTarget = panel;
+  const input = document.getElementById('file-import-input');
+  input.value = '';
+  input.onchange = () => {
+    const file = input.files[0];
+    if (file) readImportFile(file, _importTarget);
+  };
+  input.click();
+}
+
+function readImportFile(file, panel) {
+  const reader = new FileReader();
+  reader.onload = ev => importText(ev.target.result, panel);
+  reader.readAsText(file, 'utf-8');
+}
+
+function importText(text, panel) {
+  const parsed = parseMarkdown(text);
+  if (panel === 'left') {
+    leftBlocks = parsed;
+    syncLeftTextarea();
+    renderPanel('left');
+    toast('Imported to Blocks (' + parsed.length + ' blocks)');
+  } else {
+    editorBlocks = parsed;
+    renderPanel('right');
+    toast('Imported to Editor (' + parsed.length + ' blocks)');
+  }
+}
+
+function initFileImport() {
+  // Set up drag-and-drop file import for each panel
+  [
+    { panelId: 'panel-blocks',  overlayId: 'drop-overlay-left',  target: 'left'  },
+    { panelId: 'panel-editor',  overlayId: 'drop-overlay-right', target: 'right' },
+  ].forEach(({ panelId, overlayId, target }) => {
+    const panel = document.getElementById(panelId);
+    const overlay = document.getElementById(overlayId);
+
+    // Show overlay when a file is dragged over the panel
+    panel.addEventListener('dragenter', e => {
+      if (!e.dataTransfer.types.includes('Files')) return;
+      e.preventDefault();
+      overlay.classList.add('active');
+    });
+
+    panel.addEventListener('dragover', e => {
+      if (!e.dataTransfer.types.includes('Files')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    });
+
+    panel.addEventListener('dragleave', e => {
+      // Only hide if mouse leaves the panel entirely
+      if (panel.contains(e.relatedTarget)) return;
+      overlay.classList.remove('active');
+    });
+
+    panel.addEventListener('drop', e => {
+      overlay.classList.remove('active');
+      if (!e.dataTransfer.types.includes('Files')) return;
+      // Ignore block-drag drops (handled elsewhere)
+      const dtText = e.dataTransfer.getData('text/plain');
+      if (dtText === 'block' || dtText === 'listrow' || dtText.startsWith('listrow:')) return;
+      e.preventDefault(); e.stopPropagation();
+      const file = [...e.dataTransfer.files].find(f =>
+        f.name.endsWith('.md') || f.name.endsWith('.txt') || f.type.startsWith('text/')
+      );
+      if (file) readImportFile(file, target);
+      else toast('Please drop a .md or .txt file');
+    });
+  });
+}
+</script>
+</body>
+</html>
