@@ -52,6 +52,3 @@ Use the Export button to save the right editor content as a Markdown file.
 * JavaScript: Markdown parsing, block editing, drag and drop, import, preview, and export
 * Markdown: The text format used for import, editing, preview, and export
 
-## License
-
-Add your project license here.
