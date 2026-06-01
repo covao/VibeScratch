@@ -65,8 +65,10 @@ body {
   width: 32px; height: 32px;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   border-radius: 8px; display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: 800; color: white; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px; text-decoration: none;
+  cursor: pointer; transition: opacity .15s;
 }
+#logo-icon:hover { opacity: .8; }
 #logo-name {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-weight: 800; font-size: 18px;
   background: linear-gradient(90deg, var(--accent), var(--accent2));
@@ -256,6 +258,7 @@ body {
 }
 .block:hover { border-color: var(--border2); }
 .block.group-dragging { opacity: .35; transform: scale(.99); }
+/* Ctrl-drag copy indicator removed */
 .block.drag-target-before::before {
   content: ''; position: absolute; top: -3px; left: 0; right: 0;
   height: 3px; background: var(--accent); border-radius: 2px;
@@ -328,27 +331,29 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 .block-action-btn:hover { background: var(--surface); color: var(--text2); }
-.block-action-btn.del:hover { color: var(--accent3); }
+.block-action-btn.del:hover  { color: var(--accent3); }
+.block-action-btn.clip:hover { color: var(--accent2); }
+.block-action-btn.dup:hover  { color: var(--accent); }
 .block-action-btn svg { width: 12px; height: 12px; }
 
 /* Block text */
 .block-text {
-  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; font-size: 14px; line-height: 1.6;
   color: var(--text); word-break: break-word; white-space: pre-wrap;
   cursor: text; border: 1px solid transparent; border-radius: 4px;
   padding: 1px 3px; margin: -1px -3px; transition: border-color .15s;
   min-height: 22px; outline: none;
 }
 .block-text:focus { border-color: var(--border2); background: rgba(0,0,0,.2); }
-.block[data-type="h1"] .block-text   { font-size: 17px; font-weight: 700; color: var(--h1c); }
-.block[data-type="h2"] .block-text   { font-size: 15px; font-weight: 600; color: var(--h2c); }
-.block[data-type="h3"] .block-text   { font-size: 13px; font-weight: 600; color: var(--h3c); }
-.block[data-type="h4"] .block-text   { font-size: 12px; font-weight: 600; color: var(--h4c); }
-.block[data-type="h5"] .block-text   { font-size: 12px; font-weight: 500; color: var(--h5c); }
-.block[data-type="h6"] .block-text   { font-size: 12px; font-weight: 500; color: var(--h6c); opacity: .85; }
-.block[data-type="code"] .block-text  { font-size: 12px; color: var(--codec); }
-.block[data-type="quote"] .block-text { color: var(--quotec); }
-.block[data-type="para"] .block-text  { color: var(--text2); }
+.block[data-type="h1"] .block-text   { font-size: 18px; font-weight: 700; color: var(--h1c); }
+.block[data-type="h2"] .block-text   { font-size: 16px; font-weight: 600; color: var(--h2c); }
+.block[data-type="h3"] .block-text   { font-size: 14px; font-weight: 600; color: var(--h3c); }
+.block[data-type="h4"] .block-text   { font-size: 13px; font-weight: 600; color: var(--h4c); }
+.block[data-type="h5"] .block-text   { font-size: 13px; font-weight: 500; color: var(--h5c); }
+.block[data-type="h6"] .block-text   { font-size: 13px; font-weight: 500; color: var(--h6c); opacity: .85; }
+.block[data-type="code"] .block-text  { font-size: 13px; color: var(--codec); }
+.block[data-type="quote"] .block-text { font-size: 14px; color: var(--quotec); }
+.block[data-type="para"] .block-text  { color: var(--text); }
 
 /* List rows */
 .block-list-items { display: flex; flex-direction: column; gap: 2px; }
@@ -376,7 +381,7 @@ body {
 .list-row-handle svg { width: 10px; height: 10px; }
 .block-list-bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--listc); flex-shrink: 0; margin-top: 7px; }
 .block-list-item-text {
-  font-size: 13px; color: var(--text); line-height: 1.5; flex: 1;
+  font-size: 14px; color: var(--text); line-height: 1.5; flex: 1;
   cursor: text; border: 1px solid transparent; border-radius: 3px;
   padding: 1px 3px; min-height: 20px; outline: none; white-space: pre-wrap;
   font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
@@ -468,7 +473,7 @@ body {
 
 <!-- ==================== TITLEBAR ==================== -->
 <div id="titlebar">
-  <div id="logo"><div id="logo-icon">〰️</div><div id="logo-name">VibeScratch</div></div>
+  <div id="logo"><a id="logo-icon" href="https://github.com/covao/VibeScratch" target="_blank" rel="noopener" title="GitHub: covao/VibeScratch">〰️</a><div id="logo-name">VibeScratch</div></div>
   <div class="tb-divider"></div>
   <button class="tb-btn" id="btn-menu" onclick="toggleMenu()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -599,16 +604,18 @@ const ICONS = {
   grip:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>',
   chev:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>',
   copy:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  clip:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>',
+  dup:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
   cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
 };
 
 /* ===========================================================
-   STATE
+   STATE  — one source of truth for all mutable app data
    =========================================================== */
-let leftBlocks   = [];   // Blocks panel data
-let editorBlocks = [];   // Block Editor data (independent)
-let blockId      = 0;    // Auto-increment ID counter
+let leftBlocks   = [];   // PALETTE panel blocks
+let editorBlocks = [];   // Block Editor blocks (independent from leftBlocks)
+let blockId      = 0;    // Monotonic ID counter
 
 let leftMode   = 'blocks';
 let editorMode = 'block';
@@ -620,6 +627,7 @@ const editorCollapsed = new Set();
 let dragSrcIdx = null;
 let dragGroupIds = null;
 let dragOrigin = null; // 'left' | 'right'
+let dragCopy = false; // reserved (unused)
 
 /* ===========================================================
    UTILITIES
@@ -809,6 +817,8 @@ function mkBlock(block, idx, isHead, childN, collapsed, panel) {
     <div class="block-handle" aria-hidden="true">${ICONS.grip}</div>
     <div class="block-body">${body}</div>
     <div class="block-actions">
+      <button class="block-action-btn dup" onclick="dupBlock('${panel}',${idx})" title="Duplicate">${ICONS.dup}</button>
+      <button class="block-action-btn clip" onclick="clipBlock('${panel}',${idx})" title="Copy text">${ICONS.clip}</button>
       <button class="block-action-btn del" onclick="delBlock('${panel}',${idx})" title="Delete">${ICONS.trash}</button>
     </div>
   </div>`;
@@ -1032,18 +1042,30 @@ function toggleCollapse(panel, id) {
 }
 
 /* ===========================================================
-   DRAG & DROP — unified for both panels
+   DRAG & DROP
+   -----------------------------------------------------------
+   ARCHITECTURE:
+   - onDragStart  : records source panel, idx, group IDs
+   - onDragOver   : shows insert indicator; cross-panel defers to initCrossPanel
+   - onDrop       : same-panel move (or cross-panel guard that defers)
+   - initCrossPanel : handles left→right drops on the right panel container
    =========================================================== */
+
+/** Called when a block/group drag begins in either panel. */
 function onDragStart(e, startIdx, endIdx, panel) {
   e.stopPropagation();
-  dragSrcIdx = startIdx;
-  dragOrigin = panel;
+  dragSrcIdx   = startIdx;
+  dragOrigin   = panel;
   dragGroupIds = new Set();
   const arr = blocksOf(panel);
   for (let i = startIdx; i <= endIdx; i++) dragGroupIds.add(arr[i].id);
-  // Left panel: copy to editor. Right panel: move within editor.
-  e.dataTransfer.effectAllowed = panel === 'left' ? 'copy' : 'move';
+
+  // 'copyMove' lets the browser accept either 'copy' or 'move' as dropEffect.
+  // - same-panel drops use 'move'
+  // - cross-panel drops (left→right) use 'copy' (set in dragover handlers)
+  e.dataTransfer.effectAllowed = 'copyMove';
   e.dataTransfer.setData('text/plain', 'block');
+
   setTimeout(() => {
     document.querySelectorAll(`[data-panel="${panel}"]`).forEach(el => {
       if (dragGroupIds.has(parseInt(el.dataset.id))) el.classList.add('group-dragging');
@@ -1051,17 +1073,18 @@ function onDragStart(e, startIdx, endIdx, panel) {
   }, 0);
 }
 
+/** Called on dragover of any block/group element. */
 function onDragOver(e, el, targetIdx, panel, isGroup) {
-  // Cross-panel (left→right): defer entirely to editor-content.dragover
+  // Cross-panel (left→right): set 'copy' and let initCrossPanel handle visuals.
   if (dragSrcIdx !== null && dragOrigin !== panel) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
-    return; // don't stopPropagation — let editor-content.dragover handle visuals
+    return; // do NOT stopPropagation — event must bubble to initCrossPanel
   }
-  // Skip if no block-level drag active (e.g. a list-row drag is in progress)
+  // Skip if no block-level drag is active (e.g. a list-row drag)
   if (dragSrcIdx === null || !dragGroupIds) return;
   const arr = blocksOf(panel);
-  if (dragGroupIds.has(arr[targetIdx]?.id)) return;
+  if (dragGroupIds.has(arr[targetIdx]?.id)) return; // hovering own group
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
   e.stopPropagation();
@@ -1070,20 +1093,21 @@ function onDragOver(e, el, targetIdx, panel, isGroup) {
   el.classList.add(e.clientY < rect.top + rect.height / 2 ? 'drag-target-before' : 'drag-target-after');
 }
 
+/** Called on drop inside the same panel, or as guard for cross-panel drops. */
 function onDrop(e, el, targetStart, targetEnd, panel, isGroup) {
-  // Cross-panel: let editor-content handler process it
+  // Cross-panel left→right: let right-block-content handler process it
   if (dragSrcIdx !== null && dragOrigin === 'left' && panel === 'right') {
     e.preventDefault();
     return;
   }
-  // Skip if no block-level drag active (list-row drag handled by row drop handlers)
+  // Skip if no block-level drag active
   if (dragSrcIdx === null || !dragGroupIds) return;
   e.preventDefault(); e.stopPropagation();
 
   const arr = blocksOf(panel);
   const [ss, se] = groupRange(panel, dragSrcIdx);
 
-  // Same-panel list merge
+  // Same-panel list merge (only when not copying)
   const srcB = arr[dragSrcIdx], tgtB = arr[targetStart];
   if (!isGroup && srcB?.type === 'list' && tgtB?.type === 'list' && dragSrcIdx !== targetStart) {
     const items = srcB.text.split('\n').filter(s => s.trim());
@@ -1099,25 +1123,33 @@ function onDrop(e, el, targetStart, targetEnd, panel, isGroup) {
   // Skip self-drop
   if (targetStart >= ss && targetStart <= se) { resetDrag(); return; }
 
-  // Move group
   const rect = el.getBoundingClientRect();
   const before = e.clientY < rect.top + rect.height / 2;
+  // Move group
   const grp = arr.splice(ss, se - ss + 1);
   let ins = targetStart > ss ? targetStart - grp.length : targetStart;
   if (!before) ins += (targetEnd - targetStart + 1);
   ins = Math.max(0, Math.min(ins, arr.length));
   arr.splice(ins, 0, ...grp);
+  toast('Moved ' + grp.length + ' block(s)');
+
   if (panel === 'left') { syncLeftTextarea(); renderPanel('left'); } else renderPanel('right');
   resetDrag();
-  toast('Moved ' + grp.length + ' block(s)');
 }
 
 /* ===========================================================
-   CROSS-PANEL DROP — editor-content handler
+   CROSS-PANEL DROP  (left PALETTE → right Block Editor)
+   -----------------------------------------------------------
+   The right panel's block/group dragover handlers call
+   e.preventDefault() with dropEffect='copy' then return
+   WITHOUT stopPropagation, so the event bubbles here.
+   This container then renders the insert indicator and
+   processes the actual drop.
    =========================================================== */
 function initCrossPanel() {
   const c = document.getElementById('right-block-content');
 
+  // ── dragover: show insert indicator ──────────────────────
   c.addEventListener('dragover', e => {
     if (dragSrcIdx === null || dragOrigin !== 'left') return;
     e.preventDefault();
@@ -1126,19 +1158,21 @@ function initCrossPanel() {
     clearIndicators();
     clearAllRowHighlights();
 
-    const blocks = [...c.querySelectorAll('.block[data-flat-index]')];
-    if (!blocks.length) return;
+    const allBlocks = [...c.querySelectorAll('.block[data-flat-index]')];
+    if (!allBlocks.length) return;
 
+    // Find the block nearest to the cursor
     let target = null, before = true;
-    for (let i = 0; i < blocks.length; i++) {
-      const r = blocks[i].getBoundingClientRect();
-      if (e.clientY < r.top + r.height / 2) { target = blocks[i]; before = true; break; }
-      if (i === blocks.length - 1) { target = blocks[i]; before = false; }
+    for (let i = 0; i < allBlocks.length; i++) {
+      const r = allBlocks[i].getBoundingClientRect();
+      if (e.clientY < r.top + r.height / 2) { target = allBlocks[i]; before = true; break; }
+      if (i === allBlocks.length - 1)        { target = allBlocks[i]; before = false; }
     }
     if (!target) return;
 
     const srcType = leftBlocks[dragSrcIdx]?.type;
     if (srcType === 'list' && target.dataset.type === 'list') {
+      // Show row-level indicator inside the target list block
       const rows = [...target.querySelectorAll('.block-list-row')];
       if (rows.length) {
         let nr = rows[rows.length - 1], nb = false;
@@ -1155,6 +1189,7 @@ function initCrossPanel() {
     }
   });
 
+  // ── drop: insert copied blocks into editorBlocks ─────────
   c.addEventListener('drop', e => {
     if (dragSrcIdx === null || dragOrigin !== 'left') return;
     e.preventDefault(); e.stopPropagation();
@@ -1165,64 +1200,50 @@ function initCrossPanel() {
     const src = leftBlocks[dragSrcIdx];
     if (!src) { resetDrag(); return; }
 
-    // Detect if this was a single list-row drag (text stored in dataTransfer)
     const dtText = e.dataTransfer.getData('text/plain');
-    const isListRowDrag = dtText.startsWith('listrow:');
-    const rowItemText = isListRowDrag ? dtText.slice('listrow:'.length) : null;
+    const isListRow = dtText.startsWith('listrow:');
 
-    // Single list-row drag → insert only that row into a list block (or create new list block)
-    if (isListRowDrag && rowItemText !== null) {
-      const edBlocks = [...c.querySelectorAll('.block[data-flat-index]')];
+    // ── Case A: single list-row → insert into target list ──
+    if (isListRow) {
+      const rowText = dtText.slice('listrow:'.length);
+      const allBlocks = [...c.querySelectorAll('.block[data-flat-index]')];
       let near = null;
-      for (let i = 0; i < edBlocks.length; i++) {
-        const r = edBlocks[i].getBoundingClientRect();
-        if (e.clientY < r.top + r.height / 2) { near = edBlocks[i]; break; }
-        if (i === edBlocks.length - 1) near = edBlocks[i];
+      for (let i = 0; i < allBlocks.length; i++) {
+        const r = allBlocks[i].getBoundingClientRect();
+        if (e.clientY < r.top + r.height / 2) { near = allBlocks[i]; break; }
+        if (i === allBlocks.length - 1) near = allBlocks[i];
       }
       if (near?.dataset.type === 'list') {
-        // Insert item at row level inside existing list block
         const ti = parseInt(near.dataset.flatIndex);
         const rows = [...near.querySelectorAll('.block-list-row')];
         let ins = editorBlocks[ti].text.split('\n').length;
         for (let i = 0; i < rows.length; i++) {
-          const r = rows[i].getBoundingClientRect();
-          if (e.clientY < r.top + r.height / 2) { ins = i; break; }
+          if (e.clientY < rows[i].getBoundingClientRect().top + rows[i].getBoundingClientRect().height / 2) { ins = i; break; }
         }
         const parts = editorBlocks[ti].text.split('\n');
-        parts.splice(ins, 0, rowItemText);
+        parts.splice(ins, 0, rowText);
         editorBlocks[ti].text = parts.join('\n');
         resetDrag(); renderPanel('right');
         setTimeout(() => document.querySelector(`#right-block-content [data-flat-index="${ti}"]`)?.classList.add('merge-flash'), 10);
         toast('Added list item'); return;
       }
-      // No adjacent list: create new list block
-      const edBlocks2 = [...c.querySelectorAll('.block[data-flat-index]')];
-      let ins = editorBlocks.length;
-      for (const el of edBlocks2) {
-        const rect = el.getBoundingClientRect();
-        if (e.clientY < rect.top + rect.height / 2) { ins = parseInt(el.dataset.flatIndex); break; }
-      }
-      editorBlocks.splice(Math.max(0, Math.min(ins, editorBlocks.length)), 0, { id: newId(), type: 'list', text: rowItemText });
+      // No target list: insert as a new single-item list block
+      const ins = insertionIndex(c, e.clientY);
+      editorBlocks.splice(ins, 0, { id: newId(), type: 'list', text: rowText });
       resetDrag(); renderPanel('right');
       toast('Added list block'); return;
     }
 
-    // Copy entire group (heading + children, or single leaf block)
+    // ── Case B: block/group → deep-copy into editorBlocks ──
     const [ss, se] = groupRange('left', dragSrcIdx);
-    const newBlocks = leftBlocks.slice(ss, se + 1).map(b => ({ ...b, id: newId() }));
-
-    const edBlocks = [...c.querySelectorAll('.block[data-flat-index]')];
-    let ins = editorBlocks.length;
-    for (const el of edBlocks) {
-      const rect = el.getBoundingClientRect();
-      if (e.clientY < rect.top + rect.height / 2) { ins = parseInt(el.dataset.flatIndex); break; }
-    }
-    ins = Math.max(0, Math.min(ins, editorBlocks.length));
-    editorBlocks.splice(ins, 0, ...newBlocks);
+    const copies = leftBlocks.slice(ss, se + 1).map(b => ({ ...b, id: newId() }));
+    const ins = insertionIndex(c, e.clientY);
+    editorBlocks.splice(ins, 0, ...copies);
     resetDrag(); renderPanel('right');
-    toast('Copied ' + newBlocks.length + ' block(s)');
+    toast('Copied ' + copies.length + ' block(s)');
   });
 
+  // ── dragleave: clear highlight when cursor leaves panel ──
   c.addEventListener('dragleave', e => {
     if (!c.contains(e.relatedTarget)) {
       c.classList.remove('drag-receiving');
@@ -1230,6 +1251,16 @@ function initCrossPanel() {
       clearAllRowHighlights();
     }
   });
+}
+
+/** Returns the flat insertion index for a y-coordinate over the right panel. */
+function insertionIndex(container, clientY) {
+  const els = [...container.querySelectorAll('.block[data-flat-index]')];
+  for (const el of els) {
+    const r = el.getBoundingClientRect();
+    if (clientY < r.top + r.height / 2) return parseInt(el.dataset.flatIndex);
+  }
+  return editorBlocks.length;
 }
 
 /* ===========================================================
@@ -1245,7 +1276,7 @@ document.addEventListener('dragend', () => {
 }, true);
 
 function resetDrag() {
-  dragSrcIdx = null; dragGroupIds = null; dragOrigin = null;
+  dragSrcIdx = null; dragGroupIds = null; dragOrigin = null; dragCopy = false;
   clearIndicators();
   document.querySelectorAll('.group-dragging').forEach(el => el.classList.remove('group-dragging'));
   document.getElementById('left-block-content').classList.remove('drag-receiving');
@@ -1287,11 +1318,50 @@ function insertBlock(panel, idx, block) {
   }, 50);
 }
 
+function dupBlock(panel, idx) {
+  const arr = blocksOf(panel);
+  const [ss, se] = groupRange(panel, idx);
+  const copies = arr.slice(ss, se + 1).map(b => ({ ...b, id: newId() }));
+  arr.splice(se + 1, 0, ...copies);
+  if (panel === 'left') syncLeftTextarea();
+  renderPanel(panel);
+  toast('Duplicated ' + copies.length + ' block(s)');
+}
+
 function delBlock(panel, idx) {
   blocksOf(panel).splice(idx, 1);
   if (panel === 'left') syncLeftTextarea();
   renderPanel(panel);
   toast('Block deleted');
+}
+
+function clipBlock(panel, idx) {
+  const arr = blocksOf(panel);
+  const b = arr[idx];
+  if (!b) return;
+
+  let text;
+  if (hLevel(b.type) < Infinity) {
+    // Heading: serialize the full group (heading + all children)
+    const [ss, se] = groupRange(panel, idx);
+    text = serialize(arr.slice(ss, se + 1));
+  } else {
+    // All other blocks: serialize as markdown (list → "- item" lines, code → fences, etc.)
+    text = serialize([b]);
+  }
+
+  const writeText = t => navigator.clipboard.writeText(t).then(
+    () => toast('Copied to clipboard'),
+    () => {
+      const ta = document.createElement('textarea');
+      ta.value = t; ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('Copied to clipboard');
+    }
+  );
+  writeText(text);
 }
 
 
@@ -1468,46 +1538,46 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('blocks-textarea').value =
 `# Welcome to VibeScratch
 
-## Getting Started
+## Headings
 
-Parse your markdown text into blocks using the left panel.
+You can use different levels of headings to structure your palette content hierarchically.
 
-### Block Mode
+### Sub-heading
 
-Switch to Block view to drag blocks into the editor.
+This is a 3rd level notes.
 
-## Key Features
+#### Sub-heading
 
-- Drag headings to move entire sections
-- Collapse sections with the arrow toggle
-- Drop a list onto another list to merge
-- Edit any block text inline
+This is a 4th level notes.
 
-### Code Example
+## Text Blocks
+
+Text blocks allow you to write standard descriptions.
+
+## Lists
+
+- First key point or feature
+- Second key point or feature
+
+## Code Blocks
 
 \`\`\`javascript
 const greet = () => {
   console.log("VibeScratch!");
 };
 greet();
-\`\`\`
-
-## Learn More
-
-- Export your work as a Markdown file
-- Switch to Preview mode to see rendered output
-- Use Text mode for raw markdown editing
-
-> The block editor gives you full control.
-
-Paragraph blocks work just like any other block.`;
+\`\`\``;
 
   // Parse left panel
   leftBlocks = parseMarkdown(document.getElementById('blocks-textarea').value);
   renderPanel('left');
 
-  // Copy to editor as initial content
-  editorBlocks = leftBlocks.map(b => ({ ...b, id: newId() }));
+  // Independent initial content for Block Editor
+  editorBlocks = parseMarkdown(
+`# Your Code
+You can easily build your code by dragging and dropping blocks from the PALETTE.
+## Section 1`
+  );
   renderPanel('right');
 
   // Auto-sync textarea → leftBlocks (Text mode on left panel)
