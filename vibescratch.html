@@ -484,6 +484,15 @@ body {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     <span>Export</span>
   </button>
+  <div class="tb-divider"></div>
+  <button class="tb-btn" id="btn-undo" onclick="undoEditor()" title="Undo (Ctrl+Z)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M3 13C5.8 7.6 12.7 5.1 18 7.9c3.2 1.7 5 5 5 8.1"/></svg>
+    <span>Undo</span>
+  </button>
+  <button class="tb-btn" id="btn-redo" onclick="redoEditor()" title="Redo (Ctrl+Y)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M21 13C18.2 7.6 11.3 5.1 6 7.9 2.8 9.6 1 12.9 1 16"/></svg>
+    <span>Redo</span>
+  </button>
   <div id="tb-spacer"></div>
   <button class="tb-btn" onclick="toggleFullscreen()">
     <svg id="fs-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
@@ -557,6 +566,14 @@ body {
           Block Editor
         </div>
         <div class="panel-actions">
+          <button class="panel-import-btn" onclick="copyAllEditor()" title="Copy all as Markdown">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            Copy All
+          </button>
+          <button class="panel-import-btn" onclick="clearEditor()" title="Clear all editor blocks">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Clear
+          </button>
           <button class="panel-import-btn" onclick="triggerImport('right')" title="Import markdown file">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Import
@@ -616,6 +633,11 @@ const ICONS = {
 let leftBlocks   = [];   // PALETTE panel blocks
 let editorBlocks = [];   // Block Editor blocks (independent from leftBlocks)
 let blockId      = 0;    // Monotonic ID counter
+
+// Undo history for Block Editor (array of JSON snapshots, max 50)
+const MAX_UNDO = 50;
+const editorHistory = [];  // undo stack
+const editorRedo    = [];  // redo stack
 
 let leftMode   = 'blocks';
 let editorMode = 'block';
@@ -1123,6 +1145,7 @@ function onDrop(e, el, targetStart, targetEnd, panel, isGroup) {
   // Skip self-drop
   if (targetStart >= ss && targetStart <= se) { resetDrag(); return; }
 
+  if (panel === 'right') pushUndo();
   const rect = el.getBoundingClientRect();
   const before = e.clientY < rect.top + rect.height / 2;
   // Move group
@@ -1220,14 +1243,15 @@ function initCrossPanel() {
         for (let i = 0; i < rows.length; i++) {
           if (e.clientY < rows[i].getBoundingClientRect().top + rows[i].getBoundingClientRect().height / 2) { ins = i; break; }
         }
+        pushUndo();
         const parts = editorBlocks[ti].text.split('\n');
         parts.splice(ins, 0, rowText);
         editorBlocks[ti].text = parts.join('\n');
         resetDrag(); renderPanel('right');
-        setTimeout(() => document.querySelector(`#right-block-content [data-flat-index="${ti}"]`)?.classList.add('merge-flash'), 10);
         toast('Added list item'); return;
       }
       // No target list: insert as a new single-item list block
+      pushUndo();
       const ins = insertionIndex(c, e.clientY);
       editorBlocks.splice(ins, 0, { id: newId(), type: 'list', text: rowText });
       resetDrag(); renderPanel('right');
@@ -1235,6 +1259,7 @@ function initCrossPanel() {
     }
 
     // ── Case B: block/group → deep-copy into editorBlocks ──
+    pushUndo();
     const [ss, se] = groupRange('left', dragSrcIdx);
     const copies = leftBlocks.slice(ss, se + 1).map(b => ({ ...b, id: newId() }));
     const ins = insertionIndex(c, e.clientY);
@@ -1297,6 +1322,7 @@ function clearAllRowHighlights() {
    BLOCK OPERATIONS
    =========================================================== */
 function addBlock(panel, type) {
+  if (panel === 'right') pushUndo();
   const placeholders = { h1: 'Heading 1', h2: 'Heading 2', h3: 'Heading 3', list: 'List item', code: '// code', quote: 'Quote text', para: 'Paragraph text' };
   blocksOf(panel).push({ id: newId(), type, text: placeholders[type] || '' });
   if (panel === 'left') syncLeftTextarea();
@@ -1318,7 +1344,75 @@ function insertBlock(panel, idx, block) {
   }, 50);
 }
 
+/* ===========================================================
+   UNDO / EDITOR-LEVEL OPERATIONS
+   =========================================================== */
+
+/** Save a snapshot of editorBlocks before a destructive change. */
+function pushUndo() {
+  editorHistory.push(JSON.stringify(editorBlocks));
+  if (editorHistory.length > MAX_UNDO) editorHistory.shift();
+  editorRedo.length = 0; // any new change clears redo history
+  updateUndoBtn();
+}
+
+function updateUndoBtn() {
+  const u = document.getElementById('btn-undo');
+  const r = document.getElementById('btn-redo');
+  if (u) u.style.opacity = editorHistory.length ? '1' : '0.4';
+  if (r) r.style.opacity = editorRedo.length    ? '1' : '0.4';
+}
+
+function undoEditor() {
+  if (!editorHistory.length) { toast('Nothing to undo'); return; }
+  editorRedo.push(JSON.stringify(editorBlocks));
+  editorBlocks = JSON.parse(editorHistory.pop());
+  updateUndoBtn();
+  renderPanel('right');
+  toast('Undone');
+}
+
+function redoEditor() {
+  if (!editorRedo.length) { toast('Nothing to redo'); return; }
+  editorHistory.push(JSON.stringify(editorBlocks));
+  editorBlocks = JSON.parse(editorRedo.pop());
+  updateUndoBtn();
+  renderPanel('right');
+  toast('Redone');
+}
+
+function copyAllEditor() {
+  const text = serialize(editorBlocks);
+  navigator.clipboard.writeText(text).then(
+    () => toast('Copied all as Markdown'),
+    () => {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('Copied all as Markdown');
+    }
+  );
+}
+
+function clearEditor() {
+  if (!editorBlocks.length) return;
+  pushUndo();
+  editorBlocks = [];
+  renderPanel('right');
+  toast('Editor cleared');
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && !document.activeElement?.isContentEditable) {
+    if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoEditor(); }
+    if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoEditor(); }
+  }
+});
+
 function dupBlock(panel, idx) {
+  if (panel === 'right') pushUndo();
   const arr = blocksOf(panel);
   const [ss, se] = groupRange(panel, idx);
   const copies = arr.slice(ss, se + 1).map(b => ({ ...b, id: newId() }));
@@ -1329,6 +1423,7 @@ function dupBlock(panel, idx) {
 }
 
 function delBlock(panel, idx) {
+  if (panel === 'right') pushUndo();
   blocksOf(panel).splice(idx, 1);
   if (panel === 'left') syncLeftTextarea();
   renderPanel(panel);
@@ -1579,6 +1674,7 @@ You can easily build your code by dragging and dropping blocks from the PALETTE.
 ## Section 1`
   );
   renderPanel('right');
+  updateUndoBtn();
 
   // Auto-sync textarea → leftBlocks (Text mode on left panel)
   let debounce;
@@ -1625,6 +1721,7 @@ function importText(text, panel) {
     renderPanel('left');
     toast('Imported to Blocks (' + parsed.length + ' blocks)');
   } else {
+    pushUndo();
     editorBlocks = parsed;
     renderPanel('right');
     toast('Imported to Editor (' + parsed.length + ' blocks)');
